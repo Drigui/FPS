@@ -31014,6 +31014,7 @@ MonoBehaviour:
   currentLife: 5
   maxLife: 5
   enemyScorePoint: 100
+  patrolPointsContainer: {fileID: 745721250}
 --- !u!195 &1722509571
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -31048,7 +31049,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 628478a67f3907f42b030ff07bd6d839, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  barrel: {fileID: 0}
+  barrel: {fileID: 132635945}
   currentAmmo: 10
   maxAmmo: 10
   infiniteAmmo: 1
