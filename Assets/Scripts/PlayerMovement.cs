@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
@@ -7,12 +8,15 @@ public class PlayerMovement : MonoBehaviour
     //components
     private CharacterController characterController;
     private Transform cameraTransform;
+    private WeaponController weaponController;
 
     //movement and jump config parameters
     [SerializeField] private float speed = 5f;
     [SerializeField] private float multiplier = 5f;
     [SerializeField] private float jumpForce = 5f;
     [SerializeField] private float gravity = Physics.gravity.y;
+
+    //public Image staminaBar; //mio
 
     //Input fields for move and look actions
     private Vector2 moveInput;
@@ -28,15 +32,42 @@ public class PlayerMovement : MonoBehaviour
 
     //camera look sense and max angle to limit v rotation
     private float lookSensitivity = 1f;
-    private float maxLookAngle = 1f;
+    private float maxLookAngle = 80f;
+
+    //[SerializeField] private float stamina; //mio
+    //[SerializeField] private float maxStamina;
 
 
+    //Stamina
+    [Header("Stamina")]
+    [SerializeField] private float maxStamina = 100f;
+    [SerializeField] private float staminaDrainRate = 10f;
+    [SerializeField] private float staminaRegenRate = 5f;
+    private float currentStamina;
+    private bool isMoving;
+
+
+
+    //ref slider
+    [SerializeField] private Slider staminaBar;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        weaponController = GetComponent<WeaponController>();
+        //stamina = maxStamina; //mio
         characterController = GetComponent<CharacterController>();
         cameraTransform = Camera.main.transform;
+
+        //inicializar barr to max
+        currentStamina = maxStamina;
+        if (staminaBar != null)
+        {
+            staminaBar.maxValue = maxStamina;
+            staminaBar.value = currentStamina;
+        }
+
+
 
         Cursor.lockState = CursorLockMode.Locked;
     }
@@ -47,6 +78,13 @@ public class PlayerMovement : MonoBehaviour
         //TODO manage player movement
         MovePlayer();
         //TODO manage camera rotation
+        LookAround();
+        //CheckStamina();//mio
+
+        //cambia el fillamount de la imagen segun la stamina entre 10 o el maxstamina es lo mismo
+        //staminaBar.fillAmount = stamina/10; //mio
+
+        HandleStamina();
     }
 
     /// <summary>
@@ -56,6 +94,7 @@ public class PlayerMovement : MonoBehaviour
     public void Move(InputAction.CallbackContext context)
     {
         moveInput = context.ReadValue<Vector2>();
+        isMoving = moveInput != Vector2.zero;
     }
     /// <summary>
     /// receive look input from inpout system
@@ -86,7 +125,54 @@ public class PlayerMovement : MonoBehaviour
     public void Sprint(InputAction.CallbackContext context)
     {
         isSprinting = context.started || context.performed;
+
+        if (context.started || context.performed)
+        {
+            speed = 10;
+            //CheckStamina(); //mio
+            
+        }
+        if (context.canceled)
+        {
+            speed = 5;
+        }
     }
+
+    //private void CheckStamina() //este metodo es mio
+    //{
+    //    if (isSprinting && moveInput.x != 0 || moveInput.y != 0)
+    //    {
+    //        stamina -= Time.deltaTime;
+
+    //    }
+    //    if (stamina < 0)
+    //    {
+    //        isSprinting = false;
+    //        speed = 5;
+    //    }
+    //    if (isSprinting == false)
+    //    {
+    //        if (stamina < maxStamina)
+    //        {
+    //            stamina += Time.deltaTime;
+
+    //        }
+    //    }
+    //}
+    
+    /// <summary>
+    /// shoot method
+    /// </summary>
+    /// <param name="context"></param>
+    public void Shoot(InputAction.CallbackContext context)
+    {
+        if (weaponController.CanShoot() && context.started)
+        {
+            weaponController.Shoot();
+        }
+    }
+
+
     /// <summary>
     /// move jump player
     /// </summary>
@@ -128,11 +214,32 @@ public class PlayerMovement : MonoBehaviour
         transform.Rotate(Vector3.up * horizontalRotation);
 
         //vertical  rotation xaxis
-        verticalRotation = lookInput.y * lookSensitivity;
+        verticalRotation -= lookInput.y * lookSensitivity;
         verticalRotation = Mathf.Clamp(verticalRotation, -maxLookAngle, maxLookAngle);
         cameraTransform.localRotation = Quaternion.Euler(verticalRotation, 0f, 0f);
     }
+    /// <summary>
+    /// handle stamina bar
+    /// </summary>
+    private void HandleStamina()
+    {
+        if (isSprinting && isMoving && currentStamina > 0)
+        {
+            currentStamina -= staminaDrainRate * Time.deltaTime;
+            if (currentStamina <= 0)
+            {
+                currentStamina = 0;
+                isSprinting = false;
+            }
+            else if (!isSprinting && currentStamina < maxStamina)
+            {
+                currentStamina += staminaRegenRate * Time.deltaTime;
+                currentStamina = Mathf.Min(currentStamina, maxStamina); //para que no supere el numero max
+            }
+            staminaBar.value = currentStamina;
+        }
+    }
 
-    
+
 
 }
