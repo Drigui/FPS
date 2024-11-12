@@ -31,7 +31,7 @@ public class PlayerMovement : MonoBehaviour
     private bool isSprinting;
 
     //camera look sense and max angle to limit v rotation
-    private float lookSensitivity = 1f;
+    [SerializeField]private float lookSensitivity = 0.5f;
     private float maxLookAngle = 80f;
 
     //[SerializeField] private float stamina; //mio

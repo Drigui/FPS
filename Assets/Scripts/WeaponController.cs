@@ -70,7 +70,31 @@ public class WeaponController : MonoBehaviour
         //assign damage to bullet
         bullet.GetComponent<BulletController>().Damage = damage;
 
-        //bullet rb velocity
-        bullet.GetComponent<Rigidbody>().linearVelocity = barrel.forward * bulletSpeed;
+        if (isPlayer)
+        {
+            //create ray from camera to middle of screen
+            Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+            RaycastHit hit;
+            Vector3 targerPoint;
+
+            //check if point smth & adjust direction
+            if (Physics.Raycast(ray, out hit))
+            {
+                targerPoint = hit.point;
+
+            }
+            else
+            {
+                targerPoint =ray.GetPoint(5);
+            }
+            bullet.GetComponent<Rigidbody>().linearVelocity = (targerPoint - barrel.forward).normalized * bulletSpeed;
+
+        }
+        else
+        {
+            //bullet rb velocity
+            bullet.GetComponent<Rigidbody>().linearVelocity = barrel.forward * bulletSpeed;
+        }
+        
     }
 }

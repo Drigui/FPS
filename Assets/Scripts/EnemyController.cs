@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using System.Collections.Generic;
 
 public class EnemyController : MonoBehaviour
 {
@@ -55,15 +55,21 @@ public class EnemyController : MonoBehaviour
     /// </summary>
     private void GotoNextPatrolPoint()
     {
+        if (agent.remainingDistance <= 0.5f)
+        {
+            //choose next point in the list
+            //cycling to start point if need
+            destinationPoint = (destinationPoint + 1) % patrolPoints.Count;
+
+        }
         //restart stoping distance to 0
         agent.stoppingDistance = 0;
         //set agent to the current destination
         agent.SetDestination(patrolPoints[destinationPoint].position);
 
-        //choose next point in the list
-        //cycling to start point if need
-        destinationPoint = (destinationPoint + 1) % patrolPoints.Count;
         
+        
+
     }
 
 
@@ -74,31 +80,41 @@ public class EnemyController : MonoBehaviour
         {
             if (hit.distance <= 10f)
             {
+                agent.isStopped = false;
                 agent.SetDestination(playerTransform.position);
-                agent.stoppingDistance = 2f;
+                agent.stoppingDistance = 3f;
                 transform.LookAt(playerTransform.position);
-                isChasing = true;
-            }
-            if (hit.distance <= 7)
-            {
-                if (weaponController.CanShoot())
+
+
+                if(hit.distance < 5f)
                 {
-                    weaponController.Shoot();
+                    agent.isStopped = true;
+                }
+                else
+                {
+                    agent.isStopped = false;
+
+                }
+
+                if (hit.distance <= 7)
+                {
+                    if (weaponController.CanShoot())
+                    {
+                        weaponController.Shoot();
+                    }
                 }
             }
+            
             else
             {
+                agent.isStopped = false;
                 isChasing = false;
-
             }
         }
         else
         {
+            agent.isStopped = false;
             isChasing = false;
-            if (!agent.pathPending && agent.remainingDistance < 3)
-            {
-                GotoNextPatrolPoint();
-            }
         }
         
     }
